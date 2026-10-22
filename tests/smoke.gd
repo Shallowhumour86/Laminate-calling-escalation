@@ -28,16 +28,42 @@ func run() -> void:
 		var previous: Vector2 = actor.position
 		actor._physics_process(1.0 / 60.0)
 		assert(actor.position.distance_to(previous) <= actor.SPEED / 60.0 + 0.001)
-		for tick in range(400):
+		for tick in range(1200):
 			actor._physics_process(1.0 / 60.0)
-			assert(Geometry2D.is_point_in_polygon(actor.position, room.FLOOR))
+			assert(room.navigation.is_walkable(actor.position))
 		assert(actor.position.is_equal_approx(target))
 		assert(actor.sprite.animation == "idle")
+	# Opposite sides of the bed require a multi-waypoint route.
+	actor.position = Vector2(360, 350)
+	assert(room.try_move_to(Vector2(720, 350)))
+	assert(actor.waypoints.size() > 1)
+	for tick in range(1200):
+		var before: Vector2 = actor.position
+		actor._physics_process(1.0 / 60.0)
+		assert(room.navigation.segment_clear(before, actor.position))
+	assert(actor.position.is_equal_approx(Vector2(720, 350)))
+	var click := InputEventMouseButton.new()
+	click.position = Vector2(720, 400)
+	click.button_index = MOUSE_BUTTON_LEFT
+	click.pressed = true
+	room._unhandled_input(click)
+	assert(actor.destination == click.position)
+	click.button_index = MOUSE_BUTTON_RIGHT
+	click.position = Vector2(350, 400)
+	room._unhandled_input(click)
+	assert(actor.destination == Vector2(720, 400))
+	var old_destination: Vector2 = actor.destination
+	assert(not room.try_move_to(Vector2(535, 335)))
+	assert(actor.destination == old_destination)
+	room.bed.sort_against(Vector2(535, 250))
+	assert(room.bed.z_index > actor.z_index)
+	room.bed.sort_against(Vector2(535, 450))
+	assert(room.bed.z_index < actor.z_index)
 	room.try_move_to(Vector2(700, 384))
 	actor._physics_process(0.1)
-	room.try_move_to(Vector2(400, 384))
-	for tick in range(400):
+	room.try_move_to(Vector2(360, 384))
+	for tick in range(1200):
 		actor._physics_process(1.0 / 60.0)
-	assert(actor.position.is_equal_approx(Vector2(400, 384)))
-	print("PASS: movement, floor containment, redirection, eight directions, mirroring and all 48 animation frames at 8 fps")
+	assert(actor.position.is_equal_approx(Vector2(360, 384)))
+	print("PASS: bed avoidance, rejected bed clicks, front/back depth, movement, floor containment, redirection, eight directions, mirroring and all 48 animation frames at 8 fps")
 	quit()

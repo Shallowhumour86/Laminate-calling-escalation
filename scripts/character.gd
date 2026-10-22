@@ -7,6 +7,7 @@ const ANIMATIONS := {
 	"down_right": "WAdd", "down": "WAd", "up": "WAu"
 }
 var destination := Vector2.ZERO
+var waypoints := PackedVector2Array()
 var sprite := AnimatedSprite2D.new()
 
 func _ready() -> void:
@@ -26,16 +27,27 @@ func _ready() -> void:
 	sprite.play("idle")
 
 func walk_to(point: Vector2) -> void:
-	destination = point
+	follow_path(PackedVector2Array([point]))
+
+func follow_path(path: PackedVector2Array) -> void:
+	waypoints = path.duplicate()
+	if not waypoints.is_empty():
+		destination = waypoints[waypoints.size() - 1]
 
 func _physics_process(delta: float) -> void:
-	var offset := destination - position
-	if offset.length_squared() < 0.01:
-		position = destination
-		sprite.play("idle")
-		return
-	update_walk_animation(offset)
-	position = position.move_toward(destination, SPEED * delta)
+	var budget := SPEED * delta
+	while not waypoints.is_empty():
+		var target := waypoints[0]
+		var offset := target - position
+		if offset.length() <= budget:
+			position = target
+			budget -= offset.length()
+			waypoints.remove_at(0)
+		else:
+			update_walk_animation(offset)
+			position = position.move_toward(target, budget)
+			return
+	sprite.play("idle")
 
 func update_walk_animation(direction: Vector2) -> void:
 	# Eight equal screen-space sectors; mirror only the three left-facing walks.
