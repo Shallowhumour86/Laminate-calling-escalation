@@ -67,10 +67,15 @@ func run() -> void:
 			if surface is Polygon2D:
 				assert(room.bed.z_index > surface.z_index)
 	# Art, collision and sorting all follow the same placement transform.
-	assert(room.bed.position == Vector2(-160, 20))
+	var footprint: PackedVector2Array = room.bed.footprint_in_room()
+	assert(footprint[0].is_equal_approx(Vector2(272, 312)))
+	# Both rear corners sit flush with the left wall, not just the sprite centre.
+	for rear_corner in [footprint[0], footprint[1]]:
+		assert(absf(rear_corner.y + rear_corner.x * 0.5 - 448.0) < 0.001)
+	assert(is_equal_approx(room.bed.rotation_degrees, -3.945186))
 	assert(room.navigation.is_walkable(Vector2(535, 335)))
 	for corner in room.bed.footprint_in_room():
-		assert(Geometry2D.is_point_in_polygon(corner, room.FLOOR))
+		assert(Geometry2D.is_point_in_polygon(corner, room.FLOOR) or absf(corner.y + corner.x * 0.5 - 448.0) < 0.001)
 
 	room.try_move_to(Vector2(700, 384))
 	actor._physics_process(0.1)

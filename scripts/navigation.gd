@@ -17,7 +17,11 @@ func configure(floor_points: PackedVector2Array, blocked_points: PackedVector2Ar
 	grid.update()
 	for x in range(grid.region.size.x):
 		for y in range(grid.region.size.y):
-			grid.set_point_solid(Vector2i(x, y), not is_walkable(Vector2(x, y) * CELL))
+			var point := Vector2(x, y) * CELL
+			var safe := is_walkable(point)
+			for corner in [Vector2(-2, -2), Vector2(2, -2), Vector2(2, 2), Vector2(-2, 2)]:
+				safe = safe and is_walkable(point + corner)
+			grid.set_point_solid(Vector2i(x, y), not safe)
 
 func is_walkable(point: Vector2) -> bool:
 	return Geometry2D.is_point_in_polygon(point, floor_polygon) and not Geometry2D.is_point_in_polygon(point, obstacle)
@@ -57,8 +61,10 @@ func path_between(from: Vector2, target: Vector2) -> PackedVector2Array:
 	return result
 
 func segment_clear(a: Vector2, b: Vector2) -> bool:
-	var steps := maxi(1, int(ceil(a.distance_to(b))))
-	for step in range(steps + 1):
-		if not is_walkable(a.lerp(b, float(step) / steps)):
+	if not is_walkable(a) or not is_walkable(b):
+		return false
+	# Exact edge intersections also catch tiny corner crossings after rotation.
+	for index in range(obstacle.size()):
+		if Geometry2D.segment_intersects_segment(a, b, obstacle[index], obstacle[(index + 1) % obstacle.size()]) != null:
 			return false
 	return true

@@ -1,11 +1,14 @@
 extends Node2D
 ## The visible base's diamond defines both collision and the depth boundary.
-const PLACEMENT := Vector2(-160, 20)
+const HEADBOARD_ANCHOR := Vector2(272, 312)
 const FOOTPRINT := [Vector2(400, 325), Vector2(532, 270), Vector2(675, 345), Vector2(542, 400)]
 var sprite := Sprite2D.new()
 
 func _ready() -> void:
-	position = PLACEMENT
+	# Anchor the rear-left base corner on the wall and align the rear edge
+	# with its 2:1 isometric slope (about 3.95 degrees counterclockwise).
+	rotation = Vector2(2, -1).angle() - (FOOTPRINT[1] - FOOTPRINT[0]).angle()
+	position = HEADBOARD_ANCHOR - FOOTPRINT[0].rotated(rotation)
 	var texture := preload("res://assets/room/bed.png")
 	var atlas := AtlasTexture.new()
 	atlas.atlas = texture
@@ -18,7 +21,7 @@ func _ready() -> void:
 func footprint_in_room() -> PackedVector2Array:
 	var points := PackedVector2Array()
 	for point: Vector2 in FOOTPRINT:
-		points.append(point + position)
+		points.append(transform * point)
 	return points
 
 func front_depth(x: float) -> float:
