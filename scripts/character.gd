@@ -1,7 +1,7 @@
 extends Node2D
 ## Position represents the character's feet, in room coordinates.
 
-const SPEED := 150.0
+const SPEED := 75.0
 const ANIMATIONS := {
 	"idle": "IA", "right": "WAs", "up_right": "WAdu",
 	"down_right": "WAdd", "down": "WAd", "up": "WAu"
