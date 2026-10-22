@@ -1,0 +1,16 @@
+config_version=5
+
+[application]
+config/name="Laminate calling escalation"
+run/main_scene="res://room.tscn"
+config/features=PackedStringArray("4.3", "GL Compatibility")
+
+[display]
+window/size/viewport_width=1024
+window/size/viewport_height=640
+window/stretch/mode="canvas_items"
+
+[rendering]
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+environment/defaults/default_clear_color=Color(0.14, 0.16, 0.19, 1)
