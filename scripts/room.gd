@@ -16,10 +16,10 @@ var actors := Node2D.new()
 
 func _ready() -> void:
 	build_room_art()
-	navigation.configure(PackedVector2Array(FLOOR), PackedVector2Array(Bed.FOOTPRINT))
 	add_child(actors)
 	bed = Bed.new()
 	actors.add_child(bed)
+	navigation.configure(PackedVector2Array(FLOOR), bed.footprint_in_room())
 	character = Character.new()
 	character.position = Vector2(512, 475)
 	actors.add_child(character)
@@ -45,6 +45,8 @@ func build_room_art() -> void:
 
 func add_art(points: PackedVector2Array, texture_points: PackedVector2Array) -> void:
 	var surface := Polygon2D.new()
+	# Keep every room surface behind both actor depth orders (-1 and +1).
+	surface.z_index = -10
 	surface.polygon = points
 	surface.uv = texture_points
 	surface.texture = preload("res://assets/room/hotel.png")
